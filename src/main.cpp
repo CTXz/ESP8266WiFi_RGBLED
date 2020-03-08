@@ -2,18 +2,9 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
-#include <Adafruit_GFX.h>
-#include <ESP_Adafruit_SSD1306.h>
 
-#define OLED_RESET 4
-Adafruit_SSD1306 display(OLED_RESET);
-
-#if (SSD1306_LCDHEIGHT != 64)
-#error("Height incorrect, please fix Adafruit_SSD1306.h!");
-#endif
-
-const char* ssid = "Connectify-me";
-const char* password = "12345678";
+const char* ssid = "Lolspot";
+const char* password = "One2Three4";
 
 ESP8266WebServer server(80);
 
@@ -34,19 +25,6 @@ void handleRoot() {
    Serial.println(red.toInt());   // for TESTING
    Serial.println(green.toInt()); // for TESTING
    Serial.println(blue.toInt());  // for TESTING
-
-  display.clearDisplay();
-  display.setTextColor(WHITE);
-    
-  display.setTextSize(2); 
-  display.setTextColor(WHITE); 
-  display.setCursor(0,0);      
-  display.print("R = ");  display.println(red.toInt());
-  display.setCursor(0,18);
-  display.print("G = ");  display.println(green.toInt());
-  display.setCursor(0,36);
-  display.print("B = ");  display.println(blue.toInt()); 
-  display.display();
 
   String webpage;     
       webpage += "<!DOCTYPE HTML>\r\n";
@@ -130,16 +108,6 @@ void handleRoot() {
       server.send(200, "text/html", webpage);    
 }
 
-
-void testRGB() { // fade in and out of Red, Green, Blue
-    analogWrite(R, 1023);     // R off
-    analogWrite(G, 1023);     // G off
-    analogWrite(B, 1023);     // B off 
-    fade(R); // R
-    fade(G); // G
-    fade(B); // B
-}
-
 void fade(int pin) {
     for (int u = 0; u < 1024; u++) {
       analogWrite(pin,  1023 - u);
@@ -149,6 +117,15 @@ void fade(int pin) {
       analogWrite(pin, u);
       delay(1);
     }
+}
+
+void testRGB() { // fade in and out of Red, Green, Blue
+    analogWrite(R, 1023);     // R off
+    analogWrite(G, 1023);     // G off
+    analogWrite(B, 1023);     // B off 
+    fade(R); // R
+    fade(G); // G
+    fade(B); // B
 }
 
 void handleNotFound(){
@@ -181,59 +158,17 @@ void setup(void){
   WiFi.begin(ssid, password);
   Serial.println("");
 
-  // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
-  //display.begin(SSD1306_SWITCHCAPVCC, 0x3D);      // initialize with the I2C addr 0x3D (for the 128x64)
-  display.begin(SSD1306_SWITCHCAPVCC, 0x78>>1);     // init done
- 
-  display.clearDisplay();                 // Clear the buffer.
-  display.setTextSize(2);
-  display.setTextColor(WHITE);
-  //display.setTextColor(BLACK, WHITE);   // 'inverted' text
-  display.setCursor(0,0);
-  display.println("  ESP8266");
-
-  display.setTextSize(3);                                  //Size4 = 5 digit , size3 = 7 digits
-  //display.setTextColor(BLACK, WHITE);   // 'inverted' text
-  display.setTextColor(WHITE);
-  display.setCursor(0,20);
-  display.println("RGB LED");
-    
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  //display.setTextColor(BLACK, WHITE); // 'inverted' text
-  display.setCursor(0,52);
-  display.println("Version 0.1");
- 
-  display.display();
-  delay(2000);
-
-    display.clearDisplay();
-    display.setTextSize(2);
-    display.setTextColor(WHITE);
-    //display.setTextColor(BLACK, WHITE); // 'inverted' text
-    display.setCursor(0,0);
-    display.println("Connecting");
-  
-
   // Wait for connection
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
-    display.print(".");
-    display.display();
   }
+  
   Serial.println("");
   Serial.print("Connected to ");
   Serial.println(ssid);
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
-
-  display.clearDisplay();    
-  display.setTextSize(1);       display.setTextColor(WHITE);  
-  display.setCursor(0,0);       display.print("SSID:"); display.println(ssid);  
-  display.setTextSize(2);       display.setTextColor(WHITE); 
-  display.setCursor(0,18);      display.println(WiFi.localIP());
-  display.display();
 
   if (MDNS.begin("esp8266")) {
     Serial.println("MDNS responder started");
@@ -247,6 +182,6 @@ void setup(void){
   Serial.println("HTTP server started");
 }
 
-void loop(void){
+void loop(void) {
   server.handleClient();
 }
