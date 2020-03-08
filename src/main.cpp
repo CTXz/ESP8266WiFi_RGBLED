@@ -25,8 +25,6 @@ void handleRoot()
         String webpage;     
                 webpage += "<!DOCTYPE HTML>\r\n";
                 webpage += "<html>\r\n";
-                webpage += "<header><title>ESP8266 RGB LED</title><h1>ESP8266 RGBLED</h1></header>";
-
                 webpage += "<head>";    
                 webpage += "<meta name='mobile-web-app-capable' content='yes' />";
                 webpage += "<meta name='viewport' content='width=device-width' />";
