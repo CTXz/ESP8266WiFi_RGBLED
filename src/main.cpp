@@ -3,18 +3,20 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 
-const char* ssid = "Lolspot";
-const char* password = "One2Three4";
+#define R D5
+#define G D6
+#define B D8
 
-ESP8266WebServer server(80);
+#define SSID "Lolspot"
+#define PASSWORD "One2Three4"
 
-const int R = 14;
-const int G = 12;
-const int B = 13;
+#define SERVER_PORT 80
+
+ESP8266WebServer server(SERVER_PORT);
 
 void handleRoot()
 {
-        String red = server.arg(0);          // read RGB arguments
+        String red = server.arg(0);
         String green = server.arg(1);
         String blue = server.arg(2);
 
@@ -22,108 +24,143 @@ void handleRoot()
         analogWrite(G, green.toInt());
         analogWrite(B, blue.toInt());
 
-        String webpage;     
-                webpage += "<!DOCTYPE HTML>\r\n";
-                webpage += "<html>\r\n";
-                webpage += "<head>";    
-                webpage += "<meta name='mobile-web-app-capable' content='yes' />";
-                webpage += "<meta name='viewport' content='width=device-width' />";
-                webpage += "</head>";
+        String webpage = String("<!DOCTYPE HTML>") +
+        "<html>" +
 
-                webpage += "<body style='margin: 0px; padding: 0px;'>";
-                webpage += "<canvas id='colorspace'></canvas></body>";
+        "<head>" +
+        "<meta name='mobile-web-app-capable' content='yes' />" +
+        "<meta name='viewport' content='width=device-width' />" +
+        "</head>" +
 
-                webpage += "<script type='text/javascript'>";
-                webpage += "(function () {";
-                webpage += " var canvas = document.getElementById('colorspace');";
-                webpage += " var ctx = canvas.getContext('2d');";
-                webpage += " function drawCanvas() {";
-                webpage += " var colours = ctx.createLinearGradient(0, 0, window.innerWidth, 0);";
-                webpage += " for(var i=0; i <= 360; i+=10) {";
-                webpage += " colours.addColorStop(i/360, 'hsl(' + i + ', 100%, 50%)');";
-                webpage += " }";
+        "<body style='margin: 0px; padding: 0px;'>" +
+        "<br></br>" +
+        "<label for='red'>R:</label>" +
+        "<input min='0' max='1023' type='text' id='red_input' name='red'>" +
+        "<label for='green'>G:</label>" +
+        "<input min='0' max='1023' type='text' id='green_input' name='green'>" +
+        "<label for='blue'>B:</label>" +
+        "<input min='0' max='1023' type='text' id='blue_input' name='blue'>" +
+        "<input type='submit'></input>" +
+        "<br></br>" +
+        "<canvas id='colorspace'></canvas>" +
+        "</body>" +
 
-                webpage += " ctx.fillStyle = colours;";
-                webpage += " ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);";
-                webpage += " var luminance = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);";
-                webpage += " luminance.addColorStop(0, '#ffffff');";
-                webpage += " luminance.addColorStop(0.05, '#ffffff');";
-                webpage += " luminance.addColorStop(0.5, 'rgba(0,0,0,0)');";
-                webpage += " luminance.addColorStop(0.95, '#000000');";
-                webpage += " luminance.addColorStop(1, '#000000');";
-                webpage += " ctx.fillStyle = luminance;";
-                webpage += " ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);";
-                webpage += " }";
-                webpage += " var eventLocked = false;";
+       "<script type='text/javascript'>" +
+        "(function() {" + 
+                "var canvas = document.getElementById('colorspace');" +
+                "var ctx = canvas.getContext('2d');" +
 
-                webpage += " function handleEvent(clientX, clientY) {";
-                webpage += " if(eventLocked) {";
-                webpage += " return;";
-                webpage += " }";
+                "function drawCanvas() {" +
+                        "var colours = ctx.createLinearGradient(0, 0, window.innerWidth, 0);" +
+                        "for (var i = 0; i <= 360; i += 10) {" +
+                        "        colours.addColorStop(i / 360, 'hsl(' + i + ', 100%, 50%)');" +
+                        "}" +
 
-                webpage += " function colourCorrect(v) {";
-                webpage += " return Math.round(1023-(v*v)/64);";
-                webpage += " }";
-                webpage += " var data = ctx.getImageData(clientX, clientY, 1, 1).data;";
-                webpage += " var params = [";
-                webpage += " 'r=' + colourCorrect(data[0]),";
-                webpage += " 'g=' + colourCorrect(data[1]),";
-                webpage += " 'b=' + colourCorrect(data[2])";
-                webpage += " ].join('&');";
-                webpage += " var req = new XMLHttpRequest();";
-                webpage += " req.open('POST', '?' + params, true);";
-                webpage += " req.send();";
-                webpage += " eventLocked = true;";
-                webpage += " req.onreadystatechange = function() {";
-                webpage += " if(req.readyState == 4) {";
-                webpage += " eventLocked = false;";
-                webpage += " }";
-                webpage += " }";
-                webpage += " }";
-                webpage += " canvas.addEventListener('click', function(event) {";
-                webpage += " handleEvent(event.clientX, event.clientY, true);";
-                webpage += " }, false);";
-                webpage += " canvas.addEventListener('touchmove', function(event){";
-                webpage += " handleEvent(event.touches[0].clientX, event.touches[0].clientY);";
-                webpage += "}, false);";
-                webpage += " function resizeCanvas() {";
-                webpage += " canvas.width = window.innerWidth;";
-                webpage += " canvas.height = window.innerHeight;";
-                webpage += " drawCanvas();";
-                webpage += " }";
+                        "ctx.fillStyle = colours;" +
+                        "ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);" +
+                        "var luminance = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);" +
+                        "luminance.addColorStop(0, '#ffffff');" +
+                        "luminance.addColorStop(0.05, '#ffffff');" +
+                        "luminance.addColorStop(0.5, 'rgba(0,0,0,0)');" +
+                        "luminance.addColorStop(0.95, '#000000');" +
+                        "luminance.addColorStop(1, '#000000');" +
+                        "ctx.fillStyle = luminance;" +
+                        "ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);" +
+                "}" +
+                "var eventLocked = false;" +
 
-                webpage += " window.addEventListener('resize', resizeCanvas, false);";
-                webpage += " resizeCanvas();";
-                webpage += " drawCanvas();";
-                webpage += " document.ontouchmove = function(e) {e.preventDefault()};";
-                webpage += " })();";   
-                webpage += "</script><html>\r\n";
+                "function handleEvent(clientX, clientY) {" +
+                        "if (eventLocked) {" +
+                        "        return;" +
+                        "}" +
 
-                server.send(200, "text/html", webpage);    
+                        "function colourCorrect(v) {" +
+                                "return Math.round((v * v) / 64);" +
+                        "}" +
+
+                        "var data = ctx.getImageData(clientX, clientY, 1, 1).data;" +
+                        "var r_value = colourCorrect(data[0]);" +
+                        "var g_value = colourCorrect(data[1]);" +
+                        "var b_value = colourCorrect(data[2]);" +
+                        
+                        "document.getElementById('red_input').value = r_value;" +
+                        "document.getElementById('green_input').value = g_value;" +
+                        "document.getElementById('blue_input').value = b_value;" +
+
+                        "var params = [" +
+                                "'r=' + colourCorrect(r_value)," +
+                                "'g=' + colourCorrect(g_value)," +
+                                "'b=' + colourCorrect(b_value)" +
+                        "].join('&');" +
+
+                        "var req = new XMLHttpRequest();" + 
+                        "req.open('POST', '?' + params, true);" + 
+                        "req.send();" + 
+                        "eventLocked = true;" + 
+                        "" + 
+                        "req.onreadystatechange = function() {" + 
+                        "        if (req.readyState == 4) {" + 
+                        "        eventLocked = false;" + 
+                        "        }" + 
+                        "}" + 
+                "}" +
+
+                "canvas.addEventListener('click', function(event) {" +
+                "        handleEvent(event.clientX, event.clientY, true);" +
+                "}, false);" +
+
+                "canvas.addEventListener('touchmove', function(event) {" +
+                "        handleEvent(event.touches[0].clientX, event.touches[0].clientY);" +
+                "}, false);" +
+
+                "function resizeCanvas() {" +
+                        "canvas.width = window.innerWidth;" +
+                        "canvas.height = window.innerHeight;" +
+                        "drawCanvas();" +
+                "}" +
+
+                "window.addEventListener('resize', resizeCanvas, false);" +
+                "resizeCanvas();" +
+                "drawCanvas();" +
+
+                "document.ontouchmove = function(e) {" +
+                        "e.preventDefault()" +
+                "};" +
+        "})();" +
+        "</script>" + 
+        "<html>";
+
+        server.send(200, "text/html", webpage);
 }
 
 void fade(int pin)
 {
-        for (int u = 0; u < 1024; u++) {
-                analogWrite(pin,  1023 - u);
+        uint16_t i = 0;
+
+        for (i = 0; i < 1024; i++) {
+                analogWrite(pin,  i);
                 delay(1);
         }
-        for (int u = 0; u < 1024; u++) {
-                analogWrite(pin, u);
+        
+        for (; i >= 0; i++) {
+                analogWrite(pin, i);
                 delay(1);
         }
 }
 
-void testRGB() { // fade in and out of Red, Green, Blue
-        analogWrite(R, 1023); // R off
-        analogWrite(G, 1023); // G off
-        analogWrite(B, 1023); // B off 
-        fade(R);              // R
-        fade(G);              // G
-        fade(B);              // B
+/* fade in and out of Red, Green, Blue */
+void testRGB()
+{
+        analogWrite(R, 0); // R off
+        analogWrite(G, 0); // G off
+        analogWrite(B, 0); // B off 
+        fade(R);           // R
+        fade(G);           // G
+        fade(B);           // B
 }
 
-void handleNotFound(){
+void handleNotFound()
+{
         //digitalWrite(led, 1);
         
         String message = "File Not Found\n\n";
@@ -136,7 +173,7 @@ void handleNotFound(){
         message += server.args();
         message += "\n";
 
-        for (uint8_t i=0; i<server.args(); i++)
+        for (uint8_t i = 0; i < server.args(); i++)
                 message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
 
         server.send(404, "text/plain", message);
@@ -149,12 +186,12 @@ void setup(void)
         pinMode(G, OUTPUT);
         pinMode(B, OUTPUT);
 
-        analogWrite(R, 600);     // R 
-        analogWrite(G, 600);     // G 
-        analogWrite(B, 600);     // B 
+        analogWrite(R, 0); // R 
+        analogWrite(G, 0); // G 
+        analogWrite(B, 0); // B 
 
         Serial.begin(115200);
-        WiFi.begin(ssid, password);
+        WiFi.begin(SSID, PASSWORD);
         Serial.println("");
 
         // Wait for connection
@@ -165,7 +202,7 @@ void setup(void)
 
         Serial.println("");
         Serial.print("Connected to ");
-        Serial.println(ssid);
+        Serial.println(SSID);
         Serial.print("IP address: ");
         Serial.println(WiFi.localIP());
 

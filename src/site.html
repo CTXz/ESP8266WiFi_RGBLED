@@ -1,0 +1,97 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>";
+    <meta name='mobile-web-app-capable' content='yes' />
+    <meta name='viewport' content='width=device-width' />
+</head>
+
+<body style='margin: 0px; padding: 0px;'>
+    <br></br>
+    <label for='red'>R:</label>
+    <input min='0' max='1023' type='text' id='red_input' name='red'>
+    <label for='green'>G:</label>
+    <input min='0' max='1023' type='text' id='green_input' name='green'>
+    <label for='blue'>B:</label>
+    <input min='0' max='1023' type='text' id='blue_input' name='blue'>
+    <input type='submit'></input>
+    <br></br>
+    <canvas id='colorspace'></canvas>
+</body>
+
+<script type='text/javascript'>
+    (function() {
+        var canvas = document.getElementById('colorspace');
+        var ctx = canvas.getContext('2d');
+
+        function drawCanvas() {
+            var colours = ctx.createLinearGradient(0, 0, window.innerWidth, 0);
+            for (var i = 0; i <= 360; i += 10) {
+                colours.addColorStop(i / 360, 'hsl(' + i + ', 100%, 50%)');
+            }
+
+            ctx.fillStyle = colours;
+            ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+            var luminance = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+            luminance.addColorStop(0, '#ffffff');
+            luminance.addColorStop(0.05, '#ffffff');
+            luminance.addColorStop(0.5, 'rgba(0,0,0,0)');
+            luminance.addColorStop(0.95, '#000000');
+            luminance.addColorStop(1, '#000000');
+            ctx.fillStyle = luminance;
+            ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        }
+        var eventLocked = false;
+
+        function handleEvent(clientX, clientY) {
+            if (eventLocked) {
+                return;
+            }
+
+            function colourCorrect(v) {
+                return Math.round((v * v) / 64);
+            }
+            var data = ctx.getImageData(clientX, clientY, 1, 1).data;
+            var r_value = colourCorrect(data[0]);
+            var g_value = colourCorrect(data[1]);
+            var b_value = colourCorrect(data[2]);
+            document.getElementById('red_input').value = r_value;
+            document.getElementById('green_input').value = g_value;
+            document.getElementById('blue_input').value = b_value;
+            var params = [
+                'r=' + colourCorrect(r_value),
+                'g=' + colourCorrect(g_value),
+                'b=' + colourCorrect(b_value)
+            ].join('&');
+            var req = new XMLHttpRequest();
+            req.open('POST', '?' + params, true);
+            req.send();
+            eventLocked = true;
+            req.onreadystatechange = function() {
+                if (req.readyState == 4) {
+                    eventLocked = false;
+                }
+            }
+        }
+        canvas.addEventListener('click', function(event) {
+            handleEvent(event.clientX, event.clientY, true);
+        }, false);
+        canvas.addEventListener('touchmove', function(event) {
+            handleEvent(event.touches[0].clientX, event.touches[0].clientY);
+        }, false);
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            drawCanvas();
+        }
+
+        window.addEventListener('resize', resizeCanvas, false);
+        resizeCanvas();
+        drawCanvas();
+        document.ontouchmove = function(e) {
+            e.preventDefault()
+        };
+    })();
+</script>
+<html>
